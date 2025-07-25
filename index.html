@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retrievix - Login & Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <input type="checkbox" id="toggle" hidden />
+
+    <div class="form-container">
+      <!-- Login Form -->
+      <form id="login-form" class="form" autocomplete="off">
+        <h2>Login</h2>
+        <label for="login-email">Email</label>
+        <div class="input-icon">
+          <input type="email" id="login-email" name="email" placeholder="Enter your email" required />
+          <span class="icon-email"></span>
+        </div>
+        <label for="login-password">Password</label>
+        <div class="input-icon">
+          <input type="password" id="login-password" name="password" placeholder="Enter your password" required />
+          <span class="icon-password"></span>
+        </div>
+        <button type="submit">Login</button>
+        <p>Don't have an account? <label for="toggle" class="toggle-label">Register</label></p>
+      </form>
+
+      <!-- Registration Form -->
+      <form id="register-form" class="form" autocomplete="off">
+        <h2>Register</h2>
+        <label for="register-name">Full Name</label>
+        <div class="input-icon">
+          <input type="text" id="register-name" name="name" placeholder="Enter your full name" required />
+          <span class="icon-user"></span>
+        </div>
+        <label for="register-email">Email</label>
+        <div class="input-icon">
+          <input type="email" id="register-email" name="email" placeholder="Enter your email" required />
+          <span class="icon-email"></span>
+        </div>
+        <label for="register-password">Password</label>
+        <div class="input-icon">
+          <input type="password" id="register-password" name="password" placeholder="Create a password" required />
+          <span class="icon-password"></span>
+        </div>
+        <label for="register-confirm-password">Confirm Password</label>
+        <div class="input-icon">
+          <input type="password" id="register-confirm-password" name="confirmPassword" placeholder="Confirm your password" required />
+          <span class="icon-password"></span>
+        </div>
+        <button type="submit">Register</button>
+        <p>Already have an account? <label for="toggle" class="toggle-label">Login</label></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Login form submit with redirect to home page
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // TODO: Add actual login validation/authentication here
+
+      // Simulate successful login and redirect
+      window.location.href = 'home.html';  // adjust if your home page has a different path
+    });
+
+    // Registration form password confirmation validation
+    const registerForm = document.getElementById('register-form');
+    registerForm.addEventListener('submit', function(e) {
+      const pwd = document.getElementById('register-password').value;
+      const confirmPwd = document.getElementById('register-confirm-password').value;
+      if (pwd !== confirmPwd) {
+        e.preventDefault();
+        alert('Passwords do not match');
+      }
+    });
+
+    // Prevent default to avoid actual form submission for now
+    registerForm.addEventListener('submit', e => e.preventDefault());
+  </script>
+</body>
+</html>
