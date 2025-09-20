@@ -630,7 +630,7 @@ class RetrievixApp {
     }
 
     async loadMatchSuggestions() {
-        // User's lost items vs all found items
+        // Get all items to enable bidirectional matching
         const [lostRes, foundRes] = await Promise.all([
             fetch('http://localhost:5000/api/items?type=lost'),
             fetch('http://localhost:5000/api/items?type=found')
@@ -638,10 +638,16 @@ class RetrievixApp {
         const lostData = await lostRes.json();
         const foundData = await foundRes.json();
 
-        const userLost = (lostData.items || []).filter(i => i.userId === this.currentUser._id);
+        const allLost = (lostData.items || []);
         const allFound = (foundData.items || []);
 
+        // Get user's items
+        const userLost = allLost.filter(i => i.userId === this.currentUser._id);
+        const userFound = allFound.filter(i => i.userId === this.currentUser._id);
+
         let suggestions = [];
+
+        // Match user's lost items against all found items (existing logic)
         userLost.forEach(lostItem => {
             allFound.forEach(foundItem => {
                 const score = this.getMatchScore(lostItem, foundItem);
@@ -649,7 +655,23 @@ class RetrievixApp {
                     suggestions.push({
                         ...foundItem,
                         matchScore: Math.round(score * 100),
-                        lostItemId: lostItem._id
+                        lostItemId: lostItem._id,
+                        matchType: 'lost-to-found' // User's lost item matched with found item
+                    });
+                }
+            });
+        });
+
+        // Match user's found items against all lost items (new logic)
+        userFound.forEach(foundItem => {
+            allLost.forEach(lostItem => {
+                const score = this.getMatchScore(foundItem, lostItem);
+                if (score > 0.3) {
+                    suggestions.push({
+                        ...lostItem,
+                        matchScore: Math.round(score * 100),
+                        foundItemId: foundItem._id,
+                        matchType: 'found-to-lost' // User's found item matched with lost item
                     });
                 }
             });
