@@ -655,13 +655,31 @@ class RetrievixApp {
             });
         });
 
-        suggestions.sort((a, b) => b.matchScore - a.matchScore);
-        suggestions = suggestions.slice(0, 5);
+        // Deduplicate suggestions by item ID, keeping the highest match score
+        const uniqueSuggestions = [];
+        const seenIds = new Set();
+
+        suggestions.forEach(item => {
+            if (!seenIds.has(item._id)) {
+                seenIds.add(item._id);
+                uniqueSuggestions.push(item);
+            } else {
+                // If we've seen this item before, keep the one with higher match score
+                const existingIndex = uniqueSuggestions.findIndex(s => s._id === item._id);
+                if (item.matchScore > uniqueSuggestions[existingIndex].matchScore) {
+                    uniqueSuggestions[existingIndex] = item;
+                }
+            }
+        });
+
+        // Sort by match score (highest first) and take top 5
+        uniqueSuggestions.sort((a, b) => b.matchScore - a.matchScore);
+        const topSuggestions = uniqueSuggestions.slice(0, 5);
 
         const container = document.getElementById('matchSuggestions');
         if (!container) return;
 
-        container.innerHTML = suggestions.length ? suggestions.map(item => `
+        container.innerHTML = topSuggestions.length ? topSuggestions.map(item => `
             <div class="item-list-card" onclick="app.showItemDetail('${item._id}')">
                 <img src="${item.image}" alt="${item.title}" class="item-list-image">
                 <div class="item-list-content">
