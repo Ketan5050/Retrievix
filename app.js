@@ -612,6 +612,9 @@ class RetrievixApp {
                         <div class="item-list-title">${item.title}</div>
                         <div class="item-list-meta">${item.location} • ${item.date}</div>
                     </div>
+                    <div class="item-list-actions">
+                        <button class="btn btn--outline btn--sm" onclick="event.stopPropagation(); app.deleteItem('${item._id}', 'lost')">Delete</button>
+                    </div>
                 </div>
             `).join('') : '<p>No lost items reported yet.</p>';
         }
@@ -623,6 +626,9 @@ class RetrievixApp {
                     <div class="item-list-content">
                         <div class="item-list-title">${item.title}</div>
                         <div class="item-list-meta">${item.location} • ${item.date}</div>
+                    </div>
+                    <div class="item-list-actions">
+                        <button class="btn btn--outline btn--sm" onclick="event.stopPropagation(); app.deleteItem('${item._id}', 'lost')">Delete</button>
                     </div>
                 </div>
             `).join('') : '<p>No found items reported yet.</p>';
@@ -728,6 +734,30 @@ class RetrievixApp {
     hideModal(modalId) {
         const el = document.getElementById(modalId);
         if (el) el.classList.add('hidden');
+    }
+
+    // ====== Delete Item ======
+    async deleteItem(itemId, type) {
+        if (!confirm(`Are you sure you want to delete this ${type} item? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const result = await this.apiRequest(`items/${itemId}`, 'DELETE', {
+                userId: this.currentUser._id
+            });
+
+            if (result.success) {
+                this.showToast('success', 'Item Deleted', `Your ${type} item has been deleted successfully.`);
+                // Refresh the dashboard to show updated items
+                this.loadDashboard();
+            } else {
+                this.showToast('error', 'Delete Failed', result.message || 'Failed to delete item');
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            this.showToast('error', 'Error', 'Failed to delete item. Please try again.');
+        }
     }
 
     showToast(type, title, message) {

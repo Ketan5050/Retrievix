@@ -138,6 +138,28 @@ app.get("/api/items", async (req, res) => {
   }
 });
 
+// ✅ Delete item
+app.delete("/api/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Item.findById(id);
+
+    if (!item) {
+      return res.json({ success: false, message: "Item not found" });
+    }
+
+    // Check if user owns the item
+    if (item.userId !== req.body.userId) {
+      return res.json({ success: false, message: "Unauthorized to delete this item" });
+    }
+
+    await Item.findByIdAndDelete(id);
+    res.json({ success: true, message: "Item deleted successfully" });
+  } catch (err) {
+    res.json({ success: false, message: "Failed to delete item" });
+  }
+});
+
 // Start server
 const PORT = 5000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

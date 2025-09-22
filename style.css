@@ -1079,6 +1079,7 @@ select.form-control {
   border-radius: var(--radius-base);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
+  align-items: center;
 }
 
 .item-list-card:hover {
@@ -1090,10 +1091,12 @@ select.form-control {
   height: 60px;
   object-fit: cover;
   border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
 .item-list-content {
   flex: 1;
+  min-width: 0;
 }
 
 .item-list-title {
@@ -1105,6 +1108,14 @@ select.form-control {
 .item-list-meta {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+}
+
+.item-list-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
 }
 
 /* Report Form */
