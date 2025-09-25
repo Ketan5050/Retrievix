@@ -327,6 +327,24 @@ class RetrievixApp {
     handleImageUpload(e) {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Allowed image MIME types
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/tiff",
+            "image/bmp",
+            "image/webp",
+            "image/svg+xml"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            this.showToast('error', 'Invalid Image Type', 'Supported image types: JPG, PNG, GIF, TIFF, BMP, WEBP, SVG');
+            e.target.value = ''; // Reset file input
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = (ev) => {
             this.uploadedImage = ev.target.result; // Base64 string

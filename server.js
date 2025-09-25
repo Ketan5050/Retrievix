@@ -9,7 +9,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increase limit for image uploads
 
 // MongoDB connection
 mongoose.connect("mongodb://127.0.0.1:27017/retrievix")
@@ -119,10 +119,41 @@ app.post("/api/auth/login", async (req, res) => {
 // ✅ Create item
 app.post("/api/items", async (req, res) => {
   try {
+    const { image } = req.body;
+
+    // Defensive check for image type validation
+    if (image && typeof image === 'string') {
+      // Validate image data URI prefix for allowed image types
+      const allowedPrefixes = [
+        "data:image/jpeg",
+        "data:image/png",
+        "data:image/gif",
+        "data:image/tiff",
+        "data:image/bmp",
+        "data:image/webp",
+        "data:image/svg+xml"
+      ];
+
+      const isValidImage = allowedPrefixes.some(prefix => image.startsWith(prefix));
+      if (!isValidImage) {
+        return res.json({
+          success: false,
+          message: "Unsupported image type. Supported types: JPG, PNG, GIF, TIFF, BMP, WEBP, SVG"
+        });
+      }
+    } else if (image) {
+      // image field present but not a string
+      return res.json({
+        success: false,
+        message: "Invalid image data format"
+      });
+    }
+
     const item = new Item(req.body);
     await item.save();
     res.json({ success: true, item });
   } catch (err) {
+    console.error("Error saving item:", err);
     res.json({ success: false, message: "Failed to save item" });
   }
 });
