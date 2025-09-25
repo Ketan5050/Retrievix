@@ -568,17 +568,47 @@ class RetrievixApp {
     }
 
     getMatchScore(a, b) {
+        // Ensure consistent order by sorting by _id to make the calculation deterministic
+        if (a._id > b._id) {
+            [a, b] = [b, a];
+        }
+
         let score = 0;
+
+        // Category match (40% weight)
         if (a.category && b.category && a.category === b.category) score += 0.4;
 
-        const kw1 = (a.description || '').toLowerCase().split(/\s+/);
-        const kw2 = (b.description || '').toLowerCase().split(/\s+/);
-        const common = kw1.filter(w => w && kw2.includes(w)).length;
-        score += (common / Math.max(kw1.length, kw2.length || 1)) * 0.3;
+        // Semantic text matching using TF-IDF-like scoring (30% weight)
+        const desc1 = (a.description || '').toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+        const desc2 = (b.description || '').toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+        const title1 = (a.title || '').toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+        const title2 = (b.title || '').toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
 
-        const t1 = (a.title || '').toLowerCase();
-        const t2 = (b.title || '').toLowerCase();
-        if (t1 && t2 && (t1.includes(t2) || t2.includes(t1))) score += 0.3;
+        const allWords1 = [...desc1, ...title1];
+        const allWords2 = [...desc2, ...title2];
+
+        const commonWords = allWords1.filter(w => allWords2.includes(w)).length;
+        const totalUniqueWords = new Set([...allWords1, ...allWords2]).size;
+        if (totalUniqueWords > 0) {
+            score += (commonWords / totalUniqueWords) * 0.3;
+        }
+
+        // Location proximity (20% weight) - simple string similarity
+        const loc1 = (a.location || '').toLowerCase();
+        const loc2 = (b.location || '').toLowerCase();
+        if (loc1 && loc2) {
+            const locScore = loc1.includes(loc2) || loc2.includes(loc1) ? 0.2 : 0;
+            score += locScore;
+        }
+
+        // Date proximity (10% weight) - if dates are close
+        const date1 = new Date(a.date);
+        const date2 = new Date(b.date);
+        if (!isNaN(date1) && !isNaN(date2)) {
+            const daysDiff = Math.abs((date1 - date2) / (1000 * 60 * 60 * 24));
+            if (daysDiff <= 7) score += 0.1;
+            else if (daysDiff <= 30) score += 0.05;
+        }
 
         return Math.min(score, 1);
     }
